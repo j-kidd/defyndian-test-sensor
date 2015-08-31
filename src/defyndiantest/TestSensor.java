@@ -20,7 +20,9 @@ public class TestSensor extends DefyndianSensor{
 	protected void createMessages() {
 		logger.info("Putting message in inbox");
 		try {
-			putMessageInOutbox(new DefyndianMessage(("Test Message [" + new Date() + "]").getBytes()));
+			DefyndianMessage message = DefyndianMessage.withBody(("Test Message [" + new Date() + "]"));
+			logger.debug(message.toJSONString());
+			putMessageInOutbox(message);
 		} catch (InterruptedException e) {
 			logger.error("Interrupted while queueing message, message is lost");
 		}
