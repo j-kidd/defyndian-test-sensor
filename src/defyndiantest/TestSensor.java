@@ -18,7 +18,7 @@ public class TestSensor extends DefyndianSensor{
 
 	@Override
 	protected void createMessages() {
-		logger.info("Putting message in inbox");
+		logger.info("Putting message in outbox");
 		try {
 			DefyndianMessage message = DefyndianMessage.withBody(("Test Message [" + new Date() + "]"));
 			logger.debug(message.toJSONString());
