@@ -26,8 +26,10 @@ public class TestSensor extends DefyndianSensor<String>{
 				logger.debug(message.toJSONString());
 				putMessageInOutbox(message);
 			}
-		} catch (InterruptedException | IOException e) {
+		} catch (InterruptedException io) {
 			logger.error("Interrupted while queueing message, message is lost");
+		} catch ( IOException e ){
+			logger.error("IOError while sending", e);
 		}
 	}
 
