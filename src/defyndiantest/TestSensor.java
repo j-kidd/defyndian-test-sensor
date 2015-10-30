@@ -1,40 +1,45 @@
 package defyndiantest;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 
 import defyndian.config.DefyndianConfig;
 import defyndian.core.DefyndianSensor;
-import exception.DefyndianDatabaseException;
-import exception.DefyndianMQException;
-import messaging.DefyndianEnvelope;
-import messaging.DefyndianMessage;
-import messaging.RoutingInfo;
+import defyndian.exception.DefyndianDatabaseException;
+import defyndian.exception.DefyndianMQException;
+import defyndian.messaging.DefyndianEnvelope;
+import defyndian.messaging.DefyndianMessage;
+import defyndian.messaging.RoutingInfo;
 
-public class TestSensor extends DefyndianSensor{
+public class TestSensor extends DefyndianSensor<String>{
 
 	public TestSensor(String arg0, int arg1) throws DefyndianMQException, DefyndianDatabaseException {
 		super(arg0, arg1);
 	}
 
 	@Override
-	protected void createMessages() {
+	protected void createMessages(Collection<String> sensorInfo) {
 		logger.info("Putting message in outbox");
+		
 		try {
-			DefyndianMessage message = DefyndianMessage.withBody(("Test Message [" + new Date() + "]"));
-			logger.debug(message.toJSONString());
-			putMessageInOutbox(message);
+			for( String s : sensorInfo ){
+				DefyndianMessage message = DefyndianMessage.withBody(s);
+				logger.debug(message.toJSONString());
+				putMessageInOutbox(message);
+			}
 		} catch (InterruptedException e) {
 			logger.error("Interrupted while queueing message, message is lost");
 		}
 	}
 
 	@Override
-	protected boolean sensorFired() {
-		return true;
+	protected Collection<String> sensorFired() {
+		return Collections.singleton("Test Message [" + new Date() + "]");
 	}
 	
 	public static void main(String...args){
-		DefyndianSensor sensor;
+		DefyndianSensor<String> sensor;
 		try {
 			sensor = new TestSensor("Test", 10);
 			sensor.start();
