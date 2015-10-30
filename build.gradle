@@ -1,0 +1,28 @@
+
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'application'
+apply plugin: 'eclipse'
+////////////
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories{
+	mavenLocal()	
+	mavenCentral()
+}
+dependencies{
+	compile name: 'defyndian-core', version: '0.1.0'
+}
+
+//////////
+
+mainClassName = 'defyndian.sensor.test.TestSensor'
+jar {
+	manifest {
+		attributes 'Main-Class': 'com.clevrly.feed.api.Application'
+	}
+    baseName = 'clevrly-feed-api'
+    version =  '0.1.0'
+}

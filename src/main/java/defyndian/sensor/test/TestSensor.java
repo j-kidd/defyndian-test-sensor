@@ -1,16 +1,14 @@
-package defyndiantest;
+package defyndian.sensor.test;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 
-import defyndian.config.DefyndianConfig;
 import defyndian.core.DefyndianSensor;
 import defyndian.exception.DefyndianDatabaseException;
 import defyndian.exception.DefyndianMQException;
-import defyndian.messaging.DefyndianEnvelope;
 import defyndian.messaging.DefyndianMessage;
-import defyndian.messaging.RoutingInfo;
 
 public class TestSensor extends DefyndianSensor<String>{
 
@@ -28,7 +26,7 @@ public class TestSensor extends DefyndianSensor<String>{
 				logger.debug(message.toJSONString());
 				putMessageInOutbox(message);
 			}
-		} catch (InterruptedException e) {
+		} catch (InterruptedException | IOException e) {
 			logger.error("Interrupted while queueing message, message is lost");
 		}
 	}
