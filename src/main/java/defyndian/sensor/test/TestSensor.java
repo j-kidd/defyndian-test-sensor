@@ -8,6 +8,7 @@ import java.util.Date;
 import defyndian.core.DefyndianSensor;
 import defyndian.exception.DefyndianDatabaseException;
 import defyndian.exception.DefyndianMQException;
+import defyndian.messaging.BasicDefyndianMessage;
 import defyndian.messaging.DefyndianMessage;
 
 public class TestSensor extends DefyndianSensor<String>{
@@ -22,14 +23,12 @@ public class TestSensor extends DefyndianSensor<String>{
 		
 		try {
 			for( String s : sensorInfo ){
-				DefyndianMessage message = DefyndianMessage.withBody(s);
-				logger.debug(message.toJSONString());
+				BasicDefyndianMessage message = new BasicDefyndianMessage(s);
+				logger.debug(message);
 				putMessageInOutbox(message);
 			}
 		} catch (InterruptedException io) {
 			logger.error("Interrupted while queueing message, message is lost");
-		} catch ( IOException e ){
-			logger.error("IOError while sending", e);
 		}
 	}
 
@@ -44,10 +43,8 @@ public class TestSensor extends DefyndianSensor<String>{
 			sensor = new TestSensor("Test", 10);
 			sensor.start();
 		} catch (DefyndianMQException | DefyndianDatabaseException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
