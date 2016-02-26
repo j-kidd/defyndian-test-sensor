@@ -1,11 +1,11 @@
 package defyndian.sensor.test;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 
 import defyndian.core.DefyndianSensor;
+import defyndian.exception.ConfigInitialisationException;
 import defyndian.exception.DefyndianDatabaseException;
 import defyndian.exception.DefyndianMQException;
 import defyndian.messaging.BasicDefyndianMessage;
@@ -13,8 +13,8 @@ import defyndian.messaging.DefyndianMessage;
 
 public class TestSensor extends DefyndianSensor<String>{
 
-	public TestSensor(String arg0, int arg1) throws DefyndianMQException, DefyndianDatabaseException {
-		super(arg0, arg1);
+	public TestSensor(String name, int delay) throws DefyndianMQException, DefyndianDatabaseException, ConfigInitialisationException {
+		super(name, delay);
 	}
 
 	@Override
@@ -23,7 +23,7 @@ public class TestSensor extends DefyndianSensor<String>{
 		
 		try {
 			for( String s : sensorInfo ){
-				BasicDefyndianMessage message = new BasicDefyndianMessage(s);
+				DefyndianMessage message = new BasicDefyndianMessage(s);
 				logger.debug(message);
 				putMessageInOutbox(message);
 			}
@@ -40,7 +40,7 @@ public class TestSensor extends DefyndianSensor<String>{
 	public static void main(String...args){
 		DefyndianSensor<String> sensor;
 		try {
-			sensor = new TestSensor("Test", 10);
+			sensor = new TestSensor("TestSensor", 10);
 			sensor.start();
 		} catch (DefyndianMQException | DefyndianDatabaseException e1) {
 			e1.printStackTrace();
