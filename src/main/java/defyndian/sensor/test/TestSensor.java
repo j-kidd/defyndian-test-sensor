@@ -4,32 +4,43 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 
+import com.rabbitmq.client.Connection;
+import defyndian.config.DefyndianConfig;
 import defyndian.core.DefyndianSensor;
+import defyndian.datastore.exception.DatastoreCreationException;
 import defyndian.exception.ConfigInitialisationException;
 import defyndian.exception.DefyndianDatabaseException;
 import defyndian.exception.DefyndianMQException;
-import defyndian.messaging.BasicDefyndianMessage;
-import defyndian.messaging.DefyndianMessage;
+import defyndian.messaging.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TestSensor extends DefyndianSensor<String>{
 
-	public TestSensor(String name, int delay) throws DefyndianMQException, DefyndianDatabaseException, ConfigInitialisationException {
-		super(name, delay);
+	private static final Logger logger = LoggerFactory.getLogger(TestSensor.class);
+
+	public TestSensor(String name, int delay, Connection connection, DefyndianConfig config) throws DefyndianMQException, DefyndianDatabaseException, ConfigInitialisationException, DatastoreCreationException {
+		super(name, delay, connection, config);
 	}
 
 	@Override
 	protected void createMessages(Collection<String> sensorInfo) {
 		logger.info("Putting message in outbox");
-		
-		try {
-			for( String s : sensorInfo ){
-				DefyndianMessage message = new BasicDefyndianMessage(s);
-				logger.debug(message);
-				putMessageInOutbox(message);
-			}
-		} catch (InterruptedException io) {
-			logger.error("Interrupted while queueing message, message is lost");
-		}
+
+        final RoutingInfo routingInfo = RoutingInfo.getRoute(
+                config.getRabbitMQDetails().getExchange(),
+                DefyndianRoutingKey.getDefaultKey(getName()));
+        for( String s : sensorInfo ){
+            DefyndianMessage message = new BasicDefyndianMessage(s);
+            final DefyndianEnvelope<DefyndianMessage> envelope =
+                    new DefyndianEnvelope<>(routingInfo, message);
+            try {
+                publisher.publish(envelope);
+                logger.info("Published [{}]", envelope);
+            } catch (InterruptedException e) {
+                logger.error("Couldn't publish: [{}]", envelope);
+            }
+        }
 	}
 
 	@Override
@@ -37,16 +48,13 @@ public class TestSensor extends DefyndianSensor<String>{
 		return Collections.singleton("Test Message [" + new Date() + "]");
 	}
 	
-	public static void main(String...args){
-		DefyndianSensor<String> sensor;
-		try {
-			sensor = new TestSensor("TestSensor", 10);
-			sensor.start();
-		} catch (DefyndianMQException | DefyndianDatabaseException e1) {
-			e1.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public static void main(String...args) throws Exception {
+        final String name = "TestSensor";
+		final DefyndianSensor<String> sensor;
+		final DefyndianConfig config = DefyndianConfig.getConfig(name);
+        final Connection connection = config.getRabbitMQDetails().getConnectionFactory().newConnection();
+        sensor = new TestSensor(name, 10, connection, config);
+        sensor.start();
 	}
 	
 }
