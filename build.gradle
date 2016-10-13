@@ -1,20 +1,90 @@
 
-apply plugin: 'java'
+apply plugin: 'docker'
 apply plugin: 'maven'
+apply plugin: 'java'
 apply plugin: 'application'
+
+buildscript {
+    repositories { jcenter() }
+    dependencies {
+        classpath 'se.transmode.gradle:gradle-docker:1.2'
+    }
+}
 ////////////
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
+project.version = 1.0
+
 
 repositories{
 	mavenLocal()	
 	mavenCentral()
 }
+
+def mainClass = 'defyndian.sensor.test.TestSensor'
+def nodeName = 'TestSensor'
+mainClassName = mainClass;
+jar {
+    manifest {
+        attributes 'Main-Class': mainClass
+    }
+}
+
+task config( type: Copy ) {
+    from(project.rootDir) {
+        include 'nodes.properties'
+        include nodeName + '.conf'
+        include 'defyndian.conf'
+    }
+    into 'build/docker/'
+}
+
+jar {
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+task copyNode( type: Copy, dependsOn: jar ) {
+    from jar
+    into 'build/docker/'
+}
+
+task buildDocker( type: Docker ) {
+    dependsOn copyNode
+    dependsOn config
+    dockerfile = new File('docker/Dockerfile')
+}
+
+install {
+    repositories.mavenInstaller {
+        pom.version = project.version
+        pom.groupId = project.group
+        pom.artifactId = project.name
+    }
+}
+
 dependencies{
-	compile('com.defyndian:defyndian-core:1.2.0');
+	compile('com.defyndian:defyndian-core:1.4.0');
 	compile('org.slf4j:slf4j-simple:1.7.21');
 }
 
 //////////
-mainClassName = 'defyndian.sensor.test.TestSensor';
+
+
+distTar {
+    into(project.name) {
+        from '.'
+        include 'TestSensor.conf'
+    }
+    into(project.name) {
+        from '.'
+        include 'defyndian.conf'
+    }
+    into(project.name) {
+        from '.'
+        include 'nodes.properties'
+    }
+}
