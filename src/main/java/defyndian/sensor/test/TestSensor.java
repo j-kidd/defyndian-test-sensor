@@ -1,5 +1,6 @@
 package defyndian.sensor.test;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -12,6 +13,10 @@ import defyndian.exception.ConfigInitialisationException;
 import defyndian.exception.DefyndianDatabaseException;
 import defyndian.exception.DefyndianMQException;
 import defyndian.messaging.*;
+import defyndian.messaging.messages.BasicDefyndianMessage;
+import defyndian.messaging.messages.DefyndianMessage;
+import defyndian.messaging.routing.DefyndianRoutingKey;
+import defyndian.messaging.routing.RoutingInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +24,7 @@ public class TestSensor extends DefyndianSensor<String>{
 
 	private static final Logger logger = LoggerFactory.getLogger(TestSensor.class);
 
-	public TestSensor(String name, int delay, Connection connection, DefyndianConfig config) throws DefyndianMQException, DefyndianDatabaseException, ConfigInitialisationException, DatastoreCreationException {
+	public TestSensor(String name, int delay, Connection connection, DefyndianConfig config) throws DefyndianMQException, DefyndianDatabaseException, ConfigInitialisationException, DatastoreCreationException, IOException {
 		super(name, delay, connection, config);
 	}
 
